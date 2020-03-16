@@ -11,13 +11,23 @@ tremove = table.remove
 tinsert = table.insert
 
 -- ------------------------------------------------------------------------------------------------------------------------------
+-- Defines
+--
 -- If windows cache current path and username
 local PWD = ''
 local OS = ''
 local CC = 'tcc'
 
+-- Can support 4 spaces instead of \t or tabs for commands
+local TAB_SPACES = '    '
+
+-- ------------------------------------------------------------------------------------------------------------------------------
+-- On linux use gcc (will eventually use tcc though)
+if ffi.os == 'Linux' then CC = 'gcc' end
+
 function runcommand(cmd) 
     local f = assert(io.popen(cmd, 'r'))
+    print(" ", cmd)
     local out = assert(f:read('*a'))
     f:close()
     return out                
@@ -129,27 +139,38 @@ function getallfiles( ext )
 end
 
 -- ------------------------------------------------------------------------------------------------------------------------------
+-- Try loading in the provided makefile - check info.result for validity.
+function tryloadingmakefile( filename, info )
+
+    local file = io.open (filename)
+    if file == nil then 
+        print("[Makefile] Error cannot find file: ", filename)
+        info.result = nil
+    else 
+        info.result = MF_FOUND_MAKEFILE
+        for line in file:lines() do
+            -- print( line )
+            tinsert( makelines, line )
+        end 
+    end 
+end
+
+-- ------------------------------------------------------------------------------------------------------------------------------
 -- Just collect lines in a table to manage.
 function loadmake( info )
 
-    -- make a list of possible makefile names
-    if info.makefile then tinsert(mfileseq, 1, info.makefile) end
+    -- if a makefile is provided with -f then try it and ignore defaults.
+    if info.makefile then 
+
+        tryloadingmakefile(info.makefile, info)
+        if info.result == nil then os.exit() end
+    end
     
     local mfindex = 1
     while mfindex <= #mfileseq and info.result == nil do 
 
         local filename = mfileseq[mfindex]
-        local file = io.open (filename)
-        if file == nil then 
-            print("[Makefile] Error cannot find file: ", filename)
-            info.result = nil
-        else 
-            info.result = MF_FOUND_MAKEFILE
-            for line in file:lines() do
-                -- print( line )
-                tinsert( makelines, line )
-            end 
-        end 
+        tryloadingmakefile( filename, info )
         mfindex = mfindex + 1
     end 
 end
@@ -160,15 +181,18 @@ function parseparams( params )
 
     local info = {}
     local psize = #params
-    for i=1, psize do
+    local i = 1
+    repeat
 
         local entry = params[i]
         -- print(i,entry)
 
         -- Check incoming params.
         if entry == "-f" then 
+
             i = i + 1
-            if i<=psize then             
+            if i<=psize then
+             
                 info.makefile = params[i]
             end
 
@@ -176,7 +200,9 @@ function parseparams( params )
         else 
             tinsert(targets, entry)
         end
-    end
+
+        i = i + 1
+    until i > psize
 
     return info
 end
@@ -367,8 +393,8 @@ end
 function processrules(k, v)
 
     if adding_command then 
-        -- If line begins with tab or #.. keep adding commands
-        if v[1] == '\t' or v[1] == '#' then
+        -- If line begins with tab or #.. keep adding commands - we support 4 spaces too.
+        if v[1] == '\t' or v[1] == '#' or ( string.match(v, '^'..TAB_SPACES) )then
             commands[adding_command] = commands[adding_command]..v..'\n' 
         else 
             adding_command = nil
@@ -459,7 +485,9 @@ function checktargets()
         end
     else 
         result = 1
-    end    return result
+    end    
+    
+    return result
 end
 
 -- ------------------------------------------------------------------------------------------------------------------------------
@@ -468,6 +496,7 @@ function runcommandlist()
     if #commandsordered > 0 then 
 
         for k,v in ipairs(commandsordered) do
+
             runcommandline( k, v )
         end
     end
