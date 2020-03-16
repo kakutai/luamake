@@ -5,13 +5,19 @@ Allows the execution of normal Makefiles as well as being about to be easily ext
 
 Usage:
 Use specific Makefile
-> luajit luamake.lua -f MakefileName 
+```
+luajit luamake.lua -f MakefileName 
+```
 
 Use default Makefile names - Makefile and makefile
-> luajit luamake.lua 
+```
+luajit luamake.lua 
+```
 
 Use default internal build for a file named main.c
-> luajit luamake.lua main
+```
+luajit luamake.lua main
+```
 Compiles main.c into main.o (this is default make behaviour).
 Note: You must has environment variable CC set or set the CC value in the luamake.lua
 
