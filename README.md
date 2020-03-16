@@ -26,3 +26,8 @@ The tool tries to conform to the correct operation specifications outlined in GN
 https://pubs.opengroup.org/onlinepubs/009695399/utilities/make.html
 
 This is the first pass. There will be more work on this as I use it in our company build systems.
+
+Future work:
+
+The tool will be built into a luajit based exe called luamake, which will be able to be used standalone. 
+No more CMake, autobuild and such massive packages. This is intended for simple lightweight building.
