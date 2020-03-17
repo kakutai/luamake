@@ -1,0 +1,4 @@
+
+strnspn: strnspn.c
+    $(CC) strnspn.c -o strnspn_run.exe
+

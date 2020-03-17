@@ -1,0 +1,4 @@
+
+strstr: strstr.c
+    $(CC) strstr.c -o strstr_run.exe
+
