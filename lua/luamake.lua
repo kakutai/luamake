@@ -75,6 +75,8 @@ local vars = {              -- all variables are collected here
     CC = CC
 }
 
+local phonies = {}          -- Targets that are not run to create an output only for deps
+
 local processedlines = {}
 local commands = {}         -- Commands are allocated to a target (usually)
 local commandsordered = {}  -- A index list of the commands in order of file lines
@@ -390,6 +392,13 @@ function checkrules(target)
     checkinferencerules(target)
 end
 
+function addtophonies(cmd) 
+
+    for word in string.gmatch(cmd, "([%w%p]+)") do
+        phonies[word] = true
+    end
+end
+
 function processrules(k, v)
 
     if adding_command then 
@@ -404,6 +413,10 @@ function processrules(k, v)
         local target, cmd = string.match(v, "(.*):(.*)")
         if target then 
 
+            local testtarget = string.lower(target)
+            if testtarget == ".phony" then 
+                if cmd then addtophonies(cmd) end
+            end
             local res = checkrules(target)
 
             adding_command = target 
@@ -462,11 +475,11 @@ function runcommandline( k, v )
 
             for kk, vv in pairs(files) do 
                 local repl = replacemacros( vv, commands[v] )
-                print("----->", repl, vv.base)
                 if repl then runcommandsontarget( repl ) end
             end
         else
 
+            -- local repl = replacemacros( {base="", dst=v, src="" }, commands[v] )
             runcommandsontarget( commands[v] )
         end 
 
@@ -481,7 +494,9 @@ function checktargets()
         
         for k,v in ipairs(targets) do   
             
-            runcommandline( k, v )
+            if not phonies[v] then 
+                runcommandline( k, v )
+            end
         end
     else 
         result = 1
@@ -497,7 +512,10 @@ function runcommandlist()
 
         for k,v in ipairs(commandsordered) do
 
-            runcommandline( k, v )
+            local testtarget = string.lower(v)
+            if not phonies[v] and testtarget ~= ".phony" then 
+                runcommandline( k, v )
+            end
         end
     end
 end
@@ -551,7 +569,3 @@ function  runmain()
 end
 
 -- ------------------------------------------------------------------------------------------------------------------------------
-
-function test()
-    print("Some sort of test")
-end

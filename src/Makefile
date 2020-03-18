@@ -1,13 +1,26 @@
 
+CC=gcc
+CFLAGS=-g -Wall -Wl,-E
 
-luamake: clean luamake_script.o   
-	$(CC) -g -Wall -I../../luajit/src -o luamake luamake.c luamake_script.o -L../../luajit/src -lm -ldl -lluajit
+OBJS=lluamake.o
+CFILES=luamake.c
+OUTFILE=run_luamake
 
-luamake_script.o:
-	luajit -b luamake.lua luamake_script.o
+LUAFILES=../lua/luamake.lua
+
+OBJDIRS=-I../../luajit/src
+LIBDIRS=-L../../luajit/src
+
+LIBS=-lm -ldl -lluajit
+
+luamake: clean $(OBJS)    
+	$(CC) $(CFLAGS) $(OBJDIRS) -o $(OUTFILE) $(CFILES) $(OBJS) $(LIBDIRS) $(LIBS)
+
+$(OBJS):
+	luajit -b $(LUAFILES) $(OBJS) 
 
 clean:
-	rm -f luamake_script.o
-	rm -f luamake 
+	rm -f $(OBJS) 
+	rm -f $(OUTFILE) 
 
-.phony: clean luamake_script.o
+.phony: clean $(OBJS) 

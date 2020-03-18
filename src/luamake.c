@@ -15,9 +15,17 @@ int main(int argc, char **argv) {
         return 1;
     luaL_openlibs(L); /* Open standard libraries */
 
-	luaL_dostring(L, "require('luamake_script')");
+	luaL_dostring(L, "require('luamake')");
+    luaL_dostring(L, "arg = {}");
+
+    char temp[256];
+    for(int i=0; i<argc; i++) {
+        sprintf(temp, "arg[%d]='%s'", i, argv[i]);
+        luaL_dostring(L, temp);
+    }
+
 	luaL_dostring(L, "print('Running luamake...')");
-	luaL_dostring(L, "test()");
+	luaL_dostring(L, "runmain()");
 	
     lua_settop(L, 0); /* (4) */
     
