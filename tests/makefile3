@@ -1,4 +1,4 @@
 
 strnspn: strnspn.c
-    $(CC) strnspn.c -o strnspn_run.exe
+    $(CC) strnspn.c -o strnspn_run
 

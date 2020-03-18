@@ -545,7 +545,13 @@ end
 
 -- ------------------------------------------------------------------------------------------------------------------------------
 
-local info = getmakefile(arg)
-if info.result == MF_FOUND_MAKEFILE then processlines() end
+function  runmain()
+    local info = getmakefile(arg)
+    if info.result == MF_FOUND_MAKEFILE then processlines() end
+end
 
 -- ------------------------------------------------------------------------------------------------------------------------------
+
+function test()
+    print("Some sort of test")
+end
